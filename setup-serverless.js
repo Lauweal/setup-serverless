@@ -32,7 +32,7 @@ module.exports = async function createPackage(core) {
         region,
         runtime,
         functionName,
-        apigw: {
+        apigatewayConf: {
           protocols:["http","https"],
           environment
         }
