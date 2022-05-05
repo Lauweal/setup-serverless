@@ -13,6 +13,7 @@ module.exports = async function createPackage(core) {
     const runtime = core.getInput('runtime')
     const environment =core.getInput('environment') || 'release'
     const main = core.getInput('main') || 'main.js'
+    const functionName = core.getInput('functionName')
     packageJson.name = app
     packageJson.main = main
     core.info(`dir path ${process.cwd()}`)
@@ -30,8 +31,9 @@ module.exports = async function createPackage(core) {
         },
         region,
         runtime,
-        apigw: {
-          protocols:[{ http: true }],
+        functionName,
+        apigatewayConf: {
+          protocols:["http","https"],
           environment
         }
       }
