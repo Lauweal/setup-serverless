@@ -1,6 +1,6 @@
 const packageJson = require('./example-package.json')
 const { promises: fs } = require('fs');
-const YAML = require('json-to-pretty-yaml')
+const YAML = require('json2yaml')
 const path = require('path')
 
 module.exports = async function createPackage(core) {
@@ -32,7 +32,7 @@ module.exports = async function createPackage(core) {
         region,
         runtime,
         functionName,
-        apigatewayConf: {
+        apigw: {
           protocols:["http","https"],
           environment
         }
