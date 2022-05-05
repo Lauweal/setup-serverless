@@ -1,6 +1,14 @@
 require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ 256:
+/***/ ((module) => {
+
+"use strict";
+module.exports = JSON.parse('{"name":"serverless","version":"1.0.0","description":"","main":"index.js","author":"yugasun","license":"MIT"}');
+
+/***/ }),
+
 /***/ 351:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -1275,6 +1283,254 @@ exports.checkBypass = checkBypass;
 
 /***/ }),
 
+/***/ 760:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+(function() {
+    "use strict";
+
+    var typeOf = __nccwpck_require__(478).typeOf;
+    var trimWhitespace = __nccwpck_require__(428);
+
+    function stringify(data) {
+        var handlers, indentLevel = '';
+
+        handlers = {
+            "undefined": function() {
+                // objects will not have `undefined` converted to `null`
+                // as this may have unintended consequences
+                // For arrays, however, this behavior seems appropriate
+                return 'null';
+            },
+            "null": function() {
+                return 'null';
+            },
+            "number": function(x) {
+                return x;
+            },
+            "boolean": function(x) {
+                return x ? 'true' : 'false';
+            },
+            "string": function(x) {
+                // to avoid the string "true" being confused with the
+                // the literal `true`, we always wrap strings in quotes
+                return JSON.stringify(x);
+            },
+            "array": function(x) {
+                var output = '';
+
+                if (0 === x.length) {
+                    output += '[]';
+                    return output;
+                }
+
+                indentLevel = indentLevel.replace(/$/, '  ');
+                x.forEach(function(y, i) {
+                    // TODO how should `undefined` be handled?
+                    var handler = handlers[typeOf(y)];
+
+                    if (!handler) {
+                        throw new Error('what the crap: ' + typeOf(y));
+                    }
+
+                    output += '\n' + indentLevel + '- ' + handler(y, true);
+
+                });
+                indentLevel = indentLevel.replace(/  /, '');
+
+                return output;
+            },
+            "object": function(x, inArray, rootNode) {
+                var output = '';
+
+                if (0 === Object.keys(x).length) {
+                    output += '{}';
+                    return output;
+                }
+
+                if (!rootNode) {
+                    indentLevel = indentLevel.replace(/$/, '  ');
+                }
+
+                Object.keys(x).forEach(function(k, i) {
+                    var val = x[k],
+                        handler = handlers[typeOf(val)];
+
+                    if ('undefined' === typeof val) {
+                        // the user should do
+                        // delete obj.key
+                        // and not
+                        // obj.key = undefined
+                        // but we'll error on the side of caution
+                        return;
+                    }
+
+                    if (!handler) {
+                        throw new Error('what the crap: ' + typeOf(val));
+                    }
+
+                    if (!(inArray && i === 0)) {
+                        output += '\n' + indentLevel;
+                    }
+
+                    output += k + ': ' + handler(val);
+                });
+                indentLevel = indentLevel.replace(/  /, '');
+
+                return output;
+            },
+            "function": function() {
+                // TODO this should throw or otherwise be ignored
+                return '[object Function]';
+            }
+        };
+
+        return trimWhitespace(handlers[typeOf(data)](data, true, true) + '\n');
+    }
+
+    module.exports.stringify = stringify;
+}());
+
+
+/***/ }),
+
+/***/ 478:
+/***/ ((module) => {
+
+/*jslint onevar: true, undef: true, nomen: true, eqeqeq: true, plusplus: true, bitwise: true, regexp: true, newcap: true, immed: true */
+(function () {
+    "use strict";
+
+    var global = Function('return this')()
+      , classes = "Boolean Number String Function Array Date RegExp Object".split(" ")
+      , i
+      , name
+      , class2type = {}
+      ;
+
+    for (i in classes) {
+      if (classes.hasOwnProperty(i)) {
+        name = classes[i];
+        class2type["[object " + name + "]"] = name.toLowerCase();
+      }
+    }
+
+    function typeOf(obj) {
+      return (null === obj || undefined === obj) ? String(obj) : class2type[Object.prototype.toString.call(obj)] || "object";
+    }
+
+    function isEmpty(o) {
+        var i, v;
+        if (typeOf(o) === 'object') {
+            for (i in o) { // fails jslint
+                v = o[i];
+                if (v !== undefined && typeOf(v) !== 'function') {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    if (!String.prototype.entityify) {
+        String.prototype.entityify = function () {
+            return this.replace(/&/g, "&amp;").replace(/</g,
+                "&lt;").replace(/>/g, "&gt;");
+        };
+    }
+
+    if (!String.prototype.quote) {
+        String.prototype.quote = function () {
+            var c, i, l = this.length, o = '"';
+            for (i = 0; i < l; i += 1) {
+                c = this.charAt(i);
+                if (c >= ' ') {
+                    if (c === '\\' || c === '"') {
+                        o += '\\';
+                    }
+                    o += c;
+                } else {
+                    switch (c) {
+                    case '\b':
+                        o += '\\b';
+                        break;
+                    case '\f':
+                        o += '\\f';
+                        break;
+                    case '\n':
+                        o += '\\n';
+                        break;
+                    case '\r':
+                        o += '\\r';
+                        break;
+                    case '\t':
+                        o += '\\t';
+                        break;
+                    default:
+                        c = c.charCodeAt();
+                        o += '\\u00' + Math.floor(c / 16).toString(16) +
+                            (c % 16).toString(16);
+                    }
+                }
+            }
+            return o + '"';
+        };
+    } 
+
+    if (!String.prototype.supplant) {
+        String.prototype.supplant = function (o) {
+            return this.replace(/{([^{}]*)}/g,
+                function (a, b) {
+                    var r = o[b];
+                    return typeof r === 'string' || typeof r === 'number' ? r : a;
+                }
+            );
+        };
+    }
+
+    if (!String.prototype.trim) {
+        String.prototype.trim = function () {
+            return this.replace(/^\s*(\S*(?:\s+\S+)*)\s*$/, "$1");
+        };
+    }
+
+    // CommonJS / npm / Ender.JS
+    module.exports = {
+        typeOf: typeOf,
+        isEmpty: isEmpty
+    };
+    global.typeOf = global.typeOf || typeOf;
+    global.isEmpty = global.isEmpty || isEmpty;
+}());
+
+
+/***/ }),
+
+/***/ 428:
+/***/ ((module) => {
+
+"use strict";
+
+
+/**
+ * removeTrailingSpaces
+ * Remove the trailing spaces from a string.
+ *
+ * @name removeTrailingSpaces
+ * @function
+ * @param {String} input The input string.
+ * @returns {String} The output string.
+ */
+
+module.exports = function removeTrailingSpaces(input) {
+  // TODO If possible, use a regex
+  return input.split("\n").map(function (x) {
+    return x.trimRight();
+  }).join("\n");
+};
+
+/***/ }),
+
 /***/ 294:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
@@ -1555,20 +1811,56 @@ exports.debug = debug; // for test
 
 /***/ }),
 
-/***/ 258:
-/***/ ((module) => {
+/***/ 500:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-let wait = function (milliseconds) {
-  return new Promise((resolve) => {
-    if (typeof milliseconds !== 'number') {
-      throw new Error('milliseconds not a number');
-    }
-    setTimeout(() => resolve("done!"), milliseconds)
-  });
-};
+const packageJson = __nccwpck_require__(256)
+const { promises: fs } = __nccwpck_require__(747);
+const YAML = __nccwpck_require__(760)
+const path = __nccwpck_require__(622)
 
-module.exports = wait;
-
+module.exports = async function createPackage(core) {
+  try {
+    const app = core.getInput('app')
+    const component = core.getInput('component')
+    const name = core.getInput('name')
+    const lib = core.getInput('lib')
+    const region = core.getInput('region')
+    const runtime = core.getInput('runtime')
+    const environment =core.getInput('environment') || 'release'
+    const main = core.getInput('main') || 'main.js'
+    packageJson.name = app
+    packageJson.main = main
+    core.info(`dir path ${process.cwd()}`)
+    core.info(`write path ${path.join('./', lib,'package.json')}`);
+    await fs.writeFile(path.join('./', lib,'package.json'), JSON.stringify(packageJson), { encoding: 'utf8' })
+    core.info("write path success");
+    const jsonData = YAML.stringify({
+      app,
+      stage: "${env:STAGE}",
+      component,
+      name,
+      inputs: {
+        src: {
+          src: lib
+        },
+        region,
+        runtime,
+        apigatewayConf: {
+          protocols:[{ http: true }, { https: true }],
+          environment
+        }
+      }
+    })
+    core.info(`YAML data ${jsonData}`)
+    core.info(`write path ${path.join('./', 'serverless.yml')}`);
+    await fs.writeFile(path.join('./', 'serverless.yml'), jsonData);
+    core.info("write path success");
+    core.setOutput("create serverless packages success")
+  } catch (error) {
+    core.setFailed(error.message)
+  }
+}
 
 /***/ }),
 
@@ -1694,26 +1986,10 @@ var __webpack_exports__ = {};
 // This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
 (() => {
 const core = __nccwpck_require__(186);
-const wait = __nccwpck_require__(258);
+const createPackage = __nccwpck_require__(500);
 
 
-// most @actions toolkit packages have async methods
-async function run() {
-  try {
-    const ms = core.getInput('milliseconds');
-    core.info(`Waiting ${ms} milliseconds ...`);
-
-    core.debug((new Date()).toTimeString()); // debug is only output if you set the secret `ACTIONS_RUNNER_DEBUG` to true
-    await wait(parseInt(ms));
-    core.info((new Date()).toTimeString());
-
-    core.setOutput('time', new Date().toTimeString());
-  } catch (error) {
-    core.setFailed(error.message);
-  }
-}
-
-run();
+createPackage(core);
 
 })();
 

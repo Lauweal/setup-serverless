@@ -1,0 +1,14 @@
+app: ""
+stage: "${env:STAGE}"
+component: ""
+name: ""
+inputs:
+  src:
+    src: ""
+  region: ""
+  runtime: ""
+  apigatewayConf:
+    protocols:
+      - http: true
+      - https: true
+    environment: "release"

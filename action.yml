@@ -1,13 +1,35 @@
-name: 'Wait'
-description: 'Wait a designated number of milliseconds'
+name: 'setup-serverless'
+description: 'Parameters used to create the Tencent Cloud Serverless distribution package'
 inputs:
-  milliseconds:  # id of input
-    description: 'number of milliseconds to wait'
+  app:
+    description: 'Application name, default to component instance name'
     required: true
-    default: '1000'
+  component:
+    description: 'Reference the name of component'
+    required: true
+  name:
+    description: 'Name of the instance created by the component'
+    required: true
+  main:
+    description: 'Start address'
+    required: false
+    default: 'main.js'
+  lib:
+    description: 'Project entry folder'
+    required: true
+  region:
+    description: 'Application Deployment Area'
+    required: true
+  runtime:
+    description: 'Nodejs version'
+    required: true
+  environment:
+    description: 'Publishing environment'
+    required: false
+    default: 'release'
 outputs:
   time: # output will be available to future steps
-    description: 'The current time after waiting'
+    description: 'The current time after actions'
 runs:
   using: 'node16'
   main: 'dist/index.js'
